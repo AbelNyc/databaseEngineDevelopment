@@ -32,7 +32,33 @@ This project is a lightweight database engine implemented in C++. It serves as a
    - Manages a fixed-size memory buffer to store records.
    - Responsible for inserting, retrieving, deleting, and compacting records.
 
-### **Methods**
+2. **RecordManager**
+   - Manages multiple pages.
+   - Provides higher-level operations for inserting, retrieving, and deleting records across pages.
+   - Tracks free space on each page.
+
+### **Files**
+
+1. **Page.hpp**
+   - Declares the `Page` class, its member variables, and methods.
+
+2. **Page.cpp**
+   - Implements the functionality of the `Page` class.
+
+3. **RecordManager.hpp**
+   - Declares the `RecordManager` class, which manages multiple `Page` objects.
+
+4. **RecordManager.cpp**
+   - Implements the functionality of the `RecordManager` class.
+
+5. **testRecordManager.cpp**
+   - Contains unit tests to verify the functionality of the `Page` and `RecordManager` classes.
+
+---
+
+## **Methods**
+
+### **Page Class**
 
 #### `insertRecord(const char* record, int size)`
 - Inserts a record into the page.
@@ -57,6 +83,27 @@ This project is a lightweight database engine implemented in C++. It serves as a
   - Number of valid records
   - Record offsets
 
+### **RecordManager Class**
+
+#### `addPage()`
+- Allocates a new page and adds it to the collection of pages.
+
+#### `insertRecord(const char* record, int size)`
+- Finds a page with enough space and inserts the record.
+- If no page has enough space, allocates a new page and inserts the record.
+
+#### `getRecord(int pageId, int slotId)`
+- Retrieves a record from the specified page and slot.
+
+#### `deleteRecord(int pageId, int slotId)`
+- Deletes a record from the specified page and slot.
+
+#### `compactAllPages()`
+- Compacts all pages in the database to reclaim space.
+
+#### `printAllPagesInfo()`
+- Prints metadata for all pages managed by the RecordManager.
+
 ---
 
 ## **Usage Instructions**
@@ -66,31 +113,32 @@ This project is a lightweight database engine implemented in C++. It serves as a
 Use a C++ compiler to build and run the project:
 
 ```bash
-$ g++ -o database_engine main.cpp -std=c++11
-$ ./database_engine
+$ g++ -o testRecordManager testRecordManager.cpp RecordManager.cpp Page.cpp -std=c++11
+$ ./testRecordManager
 ```
 
 ### **Example Workflow**
 
 ```cpp
 #include <iostream>
-#include "Page.h"
+#include "Page.hpp"
+#include "RecordManager.hpp"
 
 int main() {
-    Page page;
+    RecordManager recordManager;
 
-    page.insertRecord("Record1", 8);
-    page.insertRecord("Record2", 4);
-    page.insertRecord("Record3", 8);
+    recordManager.insertRecord("Record1", 8);
+    recordManager.insertRecord("Record2", 4);
+    recordManager.insertRecord("Record3", 8);
 
-    page.printPageInfo();
+    recordManager.printAllPagesInfo();
 
-    std::cout << "Record at Slot 1: " << page.getRecord(1) << std::endl;
+    std::cout << "Record from Page 0, Slot 1: " << recordManager.getRecord(0, 1) << std::endl;
 
-    page.deleteRecord(1);
-    page.compactPage();
+    recordManager.deleteRecord(0, 1);
+    recordManager.compactAllPages();
 
-    page.printPageInfo();
+    recordManager.printAllPagesInfo();
 
     return 0;
 }
@@ -103,7 +151,7 @@ Page Info:
 Free Space Offset: 4076
 Number of Records: 3
 Record Offsets: 4088 4084 4076
-Record at Slot 1: Record2
+Record from Page 0, Slot 1: Record2
 Page Info:
 Free Space Offset: 4084
 Number of Records: 2
@@ -155,9 +203,3 @@ Record Offsets: 4088 4084
 3. SQLite Documentation (for inspiration on lightweight database design)
 
 ---
-
-## **Contributors**
-- [Your Name]
-
-Feel free to modify and extend this project to deepen your understanding of database systems.
-
